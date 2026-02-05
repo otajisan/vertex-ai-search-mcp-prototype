@@ -7,7 +7,7 @@ plugins {
 }
 
 jacoco {
-	toolVersion = "0.8.11"
+	toolVersion = "0.8.13"
 }
 
 group = "com.example"
@@ -46,16 +46,14 @@ kotlin {
 
 // Netty 4.2+ on JDK 24+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
 // https://netty.io/wiki/java-24-and-sun.misc.unsafe.html
-val nettyJvmArgs = listOf("--enable-native-access=io.netty.common")
-
+// bootRun のみに付与（Test では io.netty.common がモジュールとして解決されず Unknown module になるため）
 tasks.bootRun {
-	jvmArgs(nettyJvmArgs)
+	jvmArgs("--enable-native-access=io.netty.common")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
-	jvmArgs(nettyJvmArgs)
 }
 
 tasks.jacocoTestReport {

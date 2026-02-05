@@ -1,0 +1,10 @@
+[project]
+name = "vertex-ai-search-mcp-scripts"
+version = "0.1.0"
+description = "運用・配布用スクリプト（パッケージ作成など）"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+# スクリプト実行はプロジェクトルートから: uv run --project scripts python scripts/package_dist.py
+# または scripts/ で: uv sync && uv run python package_dist.py

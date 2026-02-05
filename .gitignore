@@ -9,3 +9,11 @@ credentails.json
 
 # Go client binary
 client/mcp-bridge
+
+# 配布用パッケージ (scripts/package_dist.py の出力)
+dist/
+release/
+
+# Python (uv)
+.venv
+scripts/.venv

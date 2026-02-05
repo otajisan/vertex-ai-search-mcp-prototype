@@ -111,7 +111,33 @@ uv sync
 uv run python tools/import_gcs.py --dry-run
 ```
 
-## 5. テスト実行コマンド
+## 5. 配布用パッケージの作成
+
+非エンジニア向けに Windows / macOS 用の ZIP を生成する場合、プロジェクトルートで以下を実行します。**Go 1.22+** が PATH に含まれている必要があります。
+
+**uv で実行（推奨）:**
+
+```bash
+# 初回のみ: scripts の仮想環境を用意
+uv sync --project scripts
+
+# パッケージ作成（プロジェクトルートで）
+uv run --project scripts python scripts/package_dist.py
+```
+
+または `scripts/` ディレクトリで:
+
+```bash
+cd scripts
+uv sync
+uv run python package_dist.py
+```
+
+Go を `mise` で管理している場合は、`mise exec -- uv run ...` で Go を有効化してから実行してください。
+
+生成物は `release/mcp-tool-windows.zip` と `release/mcp-tool-mac.zip` です。各 ZIP にはバイナリと `install.bat`（Windows）または `install.command`（macOS）が含まれます。
+
+## 6. テスト実行コマンド
 
 - **Kotlin (Unit Test)**: `./gradlew test` (高速、外部通信なし)
 - **Go (Unit Test)**: `go test ./internal/...`

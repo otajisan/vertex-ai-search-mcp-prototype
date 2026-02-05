@@ -44,6 +44,13 @@ kotlin {
 	}
 }
 
+// Netty 4.2+ on JDK 25+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
+// https://netty.io/wiki/java-24-and-sun.misc.unsafe.html
+// bootRun のみに付与（Test では io.netty.common がモジュールとして解決されず Unknown module になるため）
+tasks.bootRun {
+	jvmArgs("--enable-native-access=io.netty.common")
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)

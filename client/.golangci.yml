@@ -1,0 +1,27 @@
+# golangci-lint 設定 (client/)
+# https://golangci-lint.run/usage/configuration/
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  go: "1.22"
+
+linters:
+  enable:
+    - errcheck
+    - gofmt
+    - goimports
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+linters-settings:
+  govet:
+    enable-all: true
+
+issues:
+  exclude-rules:
+    # テストファイルの未使用は許容
+    - path: _test\.go
+      linters:
+        - unused

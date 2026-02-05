@@ -2,9 +2,11 @@ name: MCP CI
 
 on:
   push:
-    branches: [main, feature/python-rag-logic-mcp-server]
+    branches: [main]
   pull_request:
     branches: [main]
+    # opened: PR 作成時 / synchronize: PR ブランチへ push 時 / reopened: PR 再オープン時
+    types: [opened, synchronize, reopened]
 
 defaults:
   run:

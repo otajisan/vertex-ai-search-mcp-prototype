@@ -7,7 +7,7 @@
 
 以下のツールがインストールされていることを確認してください。
 
-- **Java**: JDK 21+ (`java -version`)
+- **Java**: JDK 25+ (`java -version`)
 - **Go**: 1.22+ (`go version`)
 - **Python**: 3.12+ & `uv` (`uv --version`)
 - **Cloud CLI**:

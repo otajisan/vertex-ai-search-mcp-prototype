@@ -15,7 +15,7 @@
 
 ### `mcp/` (Server Application)
 MCPサーバーのコアロジックを担当するバックエンドアプリケーションです。
-- **言語**: Kotlin (JDK 21)
+- **言語**: Kotlin (JDK 25)
 - **フレームワーク**: Spring Boot 3.2+ (Spring WebFlux)
 - **アーキテクチャ**: オニオンアーキテクチャ (DDD)
 - **通信プロトコル**: Server-Sent Events (SSE) for MCP transport

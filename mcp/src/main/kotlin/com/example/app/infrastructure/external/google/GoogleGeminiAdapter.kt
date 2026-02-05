@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.core.io.ResourceLoader
 import org.springframework.stereotype.Component
 import org.springframework.util.StreamUtils
@@ -21,10 +22,11 @@ import java.time.format.DateTimeFormatter
  * Vertex AI Gemini を用いた LlmGenerationRepository 実装。
  * Python の ContentGenerator（generate_search_params, generate_answer_from_context）を移植。
  * プロンプトは検証済みの文言をそのまま使用する。
+ * VertexAiHolder は @Lazy で初回利用時まで生成を遅延し、起動時に ADC が未設定でも起動可能にする。
  */
 @Component
 class GoogleGeminiAdapter(
-    private val vertexAiHolder: VertexAiHolder,
+    @Lazy private val vertexAiHolder: VertexAiHolder,
     private val resourceLoader: ResourceLoader,
     @Autowired(required = false) private val objectMapper: ObjectMapper?,
     @Value("\${vertex.gemini.model:gemini-2.0-flash}") private val modelName: String,

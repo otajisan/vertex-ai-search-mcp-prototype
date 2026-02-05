@@ -12,16 +12,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
 /**
  * Vertex AI Search (Discovery Engine) を用いた DocumentSearchRepository 実装。
  * Python の search_documents / _parse_document_response ロジックを移植。
  * フィルタは date フィールドを使用（structData.date ではない）。
+ * SearchServiceClient は @Lazy で初回利用時まで生成を遅延し、起動時に ADC が未設定でも起動可能にする。
  */
 @Component
 class GoogleSearchAdapter(
-    private val searchClient: SearchServiceClient,
+    @Lazy private val searchClient: SearchServiceClient,
     @Value("\${vertex.search.project-id}") private val projectId: String,
     @Value("\${vertex.search.location:global}") private val location: String,
 ) : DocumentSearchRepository {

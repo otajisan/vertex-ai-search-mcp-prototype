@@ -18,11 +18,35 @@
 
 ローカルからクラウド上のリソース（Vertex AI / Cognito）にアクセスするための認証を通します。
 
-```bash
-# GCP (Vertex AI) へのアクセス権取得 (Application Default Credentials)
-gcloud auth application-default login
+### GCP (Vertex AI) — Application Default Credentials (ADC)
 
-# AWS (Cognito) へのアクセス権設定 (SSO または Access Key)
+ローカル開発では、[アプリケーションのデフォルト認証情報（ADC）](https://docs.cloud.google.com/docs/authentication/set-up-adc-local-dev-environment?hl=ja) のいずれかを使います。
+
+**方法 A: ユーザー認証情報（推奨）**
+
+```bash
+gcloud auth application-default login
+```
+
+ログイン後、ADC 用の認証情報がローカルに保存され、Vertex AI / Discovery Engine のクライアントライブラリが自動的に利用します。
+
+**方法 B: サービスアカウントキー**
+
+ユーザー認証や権限借用が使えない場合は、サービスアカウントの JSON キーを用意し、環境変数でパスを指定します。
+
+```bash
+# Linux / macOS
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+
+# Windows (PowerShell)
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\service-account-key.json"
+```
+
+`GOOGLE_APPLICATION_CREDENTIALS` を設定すると、ADC はまずこのファイルを参照します。詳細は [ローカル開発環境の ADC を設定する](https://docs.cloud.google.com/docs/authentication/set-up-adc-local-dev-environment?hl=ja) を参照してください。
+
+### AWS (Cognito)
+
+```bash
 aws configure --profile my-dev-profile
 ```
 

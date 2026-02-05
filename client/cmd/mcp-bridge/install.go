@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	installURL    string
+	installURL     string
 	installProfile string
 )
 

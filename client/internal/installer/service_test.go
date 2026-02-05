@@ -15,15 +15,15 @@ func TestService_Install(t *testing.T) {
 	binaryPath := filepath.Join(dir, "mcp-bridge")
 
 	tests := []struct {
-		name       string
-		initial    string
-		url        string
-		profile    string
-		wantKey    string
-		wantCmd    string
-		wantArgs   []interface{}
-		wantEnv    map[string]interface{}
-		preserve   string // このキーが既存 JSON にあった場合、残っていることを確認する
+		wantEnv  map[string]interface{}
+		name     string
+		initial  string
+		url      string
+		profile  string
+		wantKey  string
+		wantCmd  string
+		preserve string // このキーが既存 JSON にあった場合、残っていることを確認する
+		wantArgs []interface{}
 	}{
 		{
 			name:     "empty file creates mcpServers and vertex-ai-rag",

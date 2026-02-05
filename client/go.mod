@@ -1,6 +1,6 @@
 module github.com/otajisan/vertex-ai-search-mcp-prototype/client
 
-go 1.25.7
+go 1.23.0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

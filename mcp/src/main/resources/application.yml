@@ -1,1 +1,22 @@
-spring.application.name=vertex-ai-search-mcp-prototype
+spring:
+  application:
+    name: vertex-ai-search-mcp-prototype
+  profiles:
+    active: local
+
+# 認証: ローカルでは ADC が必要です。
+# - ユーザー認証: gcloud auth application-default login
+# - または GOOGLE_APPLICATION_CREDENTIALS にサービスアカウントキーのパスを設定
+#   参照: https://docs.cloud.google.com/docs/authentication/set-up-adc-local-dev-environment?hl=ja
+vertex:
+  # Vertex AI Search (Discovery Engine). 本番では GCP_PROJECT_ID, ENGINE_ID を環境変数で設定。
+  search:
+    project-id: ${GCP_PROJECT_ID:default-project}
+    location: ${LOCATION:global}
+    engine-id: ${ENGINE_ID:default-engine}
+
+  # Vertex AI Gemini（location はリージョン必須。global は不可 → us-central1 等を指定）
+  gemini:
+    project-id: ${GCP_PROJECT_ID:default-project}
+    location: ${VERTEX_GEMINI_LOCATION:us-central1}
+    model: ${GEMINI_MODEL:gemini-2.0-flash}

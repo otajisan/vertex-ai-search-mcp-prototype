@@ -1,0 +1,71 @@
+---
+description: サーバーサイド (Kotlin/Spring Boot) の開発ルールとアーキテクチャ制約
+globs: mcp/**/*.kt, mcp/**/*.gradle.kts
+---
+
+# サーバーサイド開発ルール (Kotlin / Spring Boot)
+
+このファイルは `mcp/` ディレクトリ配下の開発における厳格なルールを定義します。
+
+## 1. アーキテクチャと依存関係 (Onion Architecture)
+
+本プロジェクトは **オニオンアーキテクチャ (DDD)** を採用しています。依存関係は必ず **内側（中心）** に向かって定義されなければなりません。
+
+### レイヤー定義と依存ルール
+`mcp/src/main/kotlin/com/company/mcpserver` 配下の構成は以下の通りです。
+
+1.  **Domain Layer** (`domain/`) - **最内層**
+    * **責務**: 純粋なビジネスロジック、エンティティ、リポジトリインターフェース。
+    * **禁止事項**: Spring Framework, Google Cloud SDK, 外部ライブラリへの依存。純粋な Kotlin 標準ライブラリのみを使用すること。
+2.  **Application Layer** (`application/`)
+    * **責務**: ユースケースの実装、ドメインオブジェクトのオーケストレーション。
+    * **依存先**: Domain Layer のみ。
+3.  **Infrastructure Layer** (`infrastructure/`)
+    * **責務**: リポジトリの実装、外部API通信、Spring Configuration。
+    * **依存先**: Application Layer, Domain Layer, 外部ライブラリ (Spring, Vertex AI SDK)。
+4.  **Presentation Layer** (`presentation/`)
+    * **責務**: Web/SSE コントローラー。
+    * **依存先**: Application Layer, Domain Layer。
+
+## 2. 実装フロー (Inside-Out)
+
+新機能を実装する際は、以下の順序を遵守してください。
+
+1.  **Domain**: エンティティ (`model`) とリポジトリインターフェース (`repository`) を定義。
+2.  **Application**: ユースケース (`usecase`) と DTO を実装。
+3.  **Infrastructure**: リポジトリの実装 (`external`) と設定 (`configuration`) を記述。
+4.  **Presentation**: コントローラー (`controller`) で公開。
+
+## 3. コーディング規約
+
+### Kotlin & Spring Boot
+- **非同期処理**: I/Oを伴う処理（検索、生成、Web通信）はすべて **Kotlin Coroutines** (`suspend fun`) で実装してください。
+- **DI (依存性注入)**: **コンストラクタインジェクション** を使用してください（フィールドインジェクション `@Autowired` は禁止）。
+- **データモデル**: エンティティやDTOには `data class` を使用し、可能な限り `val` (不変) で定義してください。
+- **Null安全性**: `!!` (double-bang) は使用禁止です。`?.let`, `?:`, またはスマートキャストを使用してください。
+
+### Vertex AI 統合の実装ルール
+- **フィルタ分離**: 検索クエリを処理する際、日付やカテゴリなどのフィルタ条件は、検索キーワード (`query`) とは明確に分離して `filter` パラメータとして扱ってください。
+- **動的データ**: Vertex AI Search から返る `derivedStructData` は動的な Map 構造です。これをそのまま上位レイヤーに渡さず、インフラ層で速やかに型付きのドメインモデル (`SearchResult` 等) に変換してください。
+
+### MCP プロトコル
+- **JSON-RPC**: レスポンスは JSON-RPC 2.0 仕様に準拠させてください（DTOで吸収推奨）。
+- **SSE**: `McpController` は `Flow<ServerSentEvent<...>>` を返すエンドポイントとして実装してください。
+
+## 4. 新規RAGツールの追加手順
+
+新しいドキュメント検索機能（例：「技術仕様書検索」）を追加する場合、**新しいサービスクラスを作成しないでください。**
+
+1.  `infrastructure/configuration/RagToolsConfig.kt` を開く。
+2.  新しい `@Bean` 関数を追加する。
+3.  その Bean で `RagTool` インスタンスを生成し、固有の `dataStoreId` と `systemPrompt` を設定して返す。
+
+これだけで、アプリケーションは自動的に新しいツールを認識し、MCPの `list_tools` に追加します。
+
+## 5. テスト戦略
+
+- **Domain / Application 層**:
+    - **MockK** を使用した単体テストを記述してください。
+    - Spring Context を起動しない（`@SpringBootTest` を使わない）ことで、高速な実行を維持してください。
+- **Infrastructure / Presentation 層**:
+    - 必要に応じて `@WebFluxTest` や `@SpringBootTest` を使用し、結合動作を確認してください。

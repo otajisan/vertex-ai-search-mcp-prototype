@@ -1,0 +1,58 @@
+---
+description: クライアントサイド (Go/CLI) の開発ルールと実装ガイドライン
+globs: client/**/*.go, client/go.mod
+---
+
+# クライアントサイド開発ルール (Go / Golang)
+
+このファイルは `client/` ディレクトリ配下の開発におけるルールを定義します。
+このコンポーネントの役割は、ユーザー環境とサーバーを繋ぐ「軽量なブリッジ」です。
+
+## 1. 設計方針と制約
+
+### シングルバイナリ・クロスコンパイル
+- **外部依存の排除**: ユーザーに配布するため、PythonランタイムやDLLなどの外部依存を含まないでください。
+- **CGOの回避**: 可能な限り `CGO_ENABLED=0` でビルドできるようにし、Windows/macOS 間のクロスコンパイルを容易にしてください。
+- **ファイルパス**: パス操作には必ず `path/filepath` を使用し、OSごとのパス区切り文字（`\` vs `/`）の違いを吸収してください。
+
+### ライブラリ選定
+- **CLIフレームワーク**: `github.com/spf13/cobra` を使用してください。
+- **設定管理**: `github.com/spf13/viper` を使用してください。
+- **通信**: 標準の `net/http` および `encoding/json` を基本とします。
+
+## 2. ディレクトリ構造
+
+Goの標準的なプロジェクトレイアウト（Standard Go Project Layout）に準拠します。
+
+`client/`
+├── `cmd/`
+│   └── `mcp-bridge/`   (エントリーポイント。`main.go` はここだけ)
+├── `internal/`         (外部から import できないプライベートパッケージ)
+│   ├── `auth/`         (Cognito認証フロー、トークン保存ロジック)
+│   ├── `config/`       (Viperの設定ロード、構造体定義)
+│   ├── `installer/`    (Claude設定ファイルの探索と書き換え)
+│   └── `proxy/`        (SSEクライアントと JSON-RPC 中継ロジック)
+└── `go.mod`
+
+## 3. 実装ガイドライン
+
+### 並行処理 (Concurrency)
+`connect` コマンドの実装では、標準入力の読み込みとサーバーからの受信を同時に行う必要があります。
+
+- **Goroutine**: `Stdin` の読み込みループと、SSE の受信ループはそれぞれ別の Goroutine で実行してください。
+- **Channel**: データの受け渡しには Channel を使用し、共有メモリ（ロック）の使用は最小限に留めてください。
+- **Context**: キャンセル処理（Ctrl+C 等）を適切にハンドリングするため、常に `context.Context` を引き回してください。
+
+### エラーハンドリング
+- **Panic 禁止**: ライブラリコード内で `panic` を使用しないでください。必ず `error` を返し、`main` 関数で適切にログ出力して `os.Exit(1)` してください。
+- **ラップ**: エラーを返す際は `fmt.Errorf("failed to ...: %w", err)` のようにラップし、文脈を残してください。
+
+### インストーラ機能 (`install` command)
+OSを `runtime.GOOS` で判別し、以下のパスにある設定ファイルを編集するロジックを実装してください。
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+## 4. テスト
+- ロジック（`internal/`）に対しては、Table Driven Tests (テーブル駆動テスト) を記述してください。
+- `cmd/` パッケージのテストは最小限にし、実際のロジックは `internal/` に切り出してください。

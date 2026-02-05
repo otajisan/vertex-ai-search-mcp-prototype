@@ -1,0 +1,59 @@
+---
+description: ビルド、テスト、実行のためのタスクコマンド定義
+globs: *
+---
+
+# タスク実行ルール
+
+ユーザーから「ビルド」「テスト」「起動」などの指示があった場合、カレントディレクトリに応じて以下のコマンドを使用してください。
+
+## サーバーサイド (`mcp/` ディレクトリ)
+
+- **アプリ起動 (開発モード)**:
+    ```bash
+    ./gradlew bootRun --args='--spring.profiles.active=dev'
+    ```
+- **テスト実行 (Unit)**:
+    ```bash
+    ./gradlew test
+    ```
+- **ビルド (Artifact生成)**:
+    ```bash
+    ./gradlew clean build -x test
+    ```
+- **依存関係更新**:
+    ```bash
+    ./gradlew --refresh-dependencies
+    ```
+
+## クライアントサイド (`client/` ディレクトリ)
+
+- **アプリ実行 (開発モード)**:
+    ```bash
+    go run ./cmd/mcp-bridge connect --debug
+    ```
+- **テスト実行**:
+    ```bash
+    go test -v ./internal/...
+    ```
+- **バイナリビルド**:
+    ```bash
+    # Windows
+    GOOS=windows GOARCH=amd64 go build -o dist/mcp-bridge.exe ./cmd/mcp-bridge
+    # macOS
+    GOOS=darwin GOARCH=arm64 go build -o dist/mcp-bridge-mac ./cmd/mcp-bridge
+    ```
+
+## スクリプト (`scripts/` ディレクトリ)
+
+- **環境セットアップ**:
+    ```bash
+    uv sync
+    ```
+- **スクリプト実行**:
+    ```bash
+    uv run python tools/xxxxx.py
+    ```
+
+## 注意事項
+- `./gradlew` や `go` コマンドを実行する際は、必ずルートではなく**該当のサブディレクトリ (`mcp` や `client`) に移動してから**実行することを提案してください。

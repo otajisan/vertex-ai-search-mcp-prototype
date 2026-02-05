@@ -16,7 +16,7 @@ description = "Demo project for Spring Boot"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(24)
 	}
 }
 
@@ -44,9 +44,18 @@ kotlin {
 	}
 }
 
+// Netty 4.2+ on JDK 24+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
+// https://netty.io/wiki/java-24-and-sun.misc.unsafe.html
+val nettyJvmArgs = listOf("--enable-native-access=io.netty.common")
+
+tasks.bootRun {
+	jvmArgs(nettyJvmArgs)
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
+	jvmArgs(nettyJvmArgs)
 }
 
 tasks.jacocoTestReport {

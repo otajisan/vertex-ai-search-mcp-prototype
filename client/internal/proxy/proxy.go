@@ -93,11 +93,12 @@ func (p *Proxy) runStdinToPost(ctx context.Context, mcpURL string, ch chan<- []b
 		if len(line) == 0 {
 			continue
 		}
+		requestID := extractRequestID(line)
 
 		// 空でない行をそのまま JSON-RPC リクエストとして送る
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, mcpURL, bytes.NewReader(line))
 		if err != nil {
-			p.sendError(ch, "build request", err)
+			p.sendError(ch, requestID, "build request", err)
 			continue
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -105,14 +106,14 @@ func (p *Proxy) runStdinToPost(ctx context.Context, mcpURL string, ch chan<- []b
 
 		resp, err := p.client.Do(req)
 		if err != nil {
-			p.sendError(ch, "post request", err)
+			p.sendError(ch, requestID, "post request", err)
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			p.sendError(ch, "read response", err)
+			p.sendError(ch, requestID, "read response", err)
 			continue
 		}
 
@@ -120,10 +121,11 @@ func (p *Proxy) runStdinToPost(ctx context.Context, mcpURL string, ch chan<- []b
 			if p.cfg.Debug {
 				fmt.Fprintf(os.Stderr, "[proxy] POST %s status=%d body=%s\n", mcpURL, resp.StatusCode, string(body))
 			}
-			p.sendError(ch, "server error", fmt.Errorf("status %d: %s", resp.StatusCode, string(body)))
+			p.sendError(ch, requestID, "server error", fmt.Errorf("status %d: %s", resp.StatusCode, string(body)))
 			continue
 		}
 
+		body = normalizeResponseID(body)
 		select {
 		case ch <- body:
 		case <-ctx.Done():
@@ -197,12 +199,13 @@ func (p *Proxy) readSSEStream(ctx context.Context, r io.Reader, ch chan<- []byte
 		if len(line) == 0 {
 			if len(currentData) > 0 {
 				if isJSONRPCResponse(currentData) {
-					cp := make([]byte, len(currentData))
-					copy(cp, currentData)
-					select {
-					case ch <- cp:
-					case <-ctx.Done():
-						return
+					cp := normalizeResponseID(currentData)
+					if len(cp) > 0 {
+						select {
+						case ch <- cp:
+						case <-ctx.Done():
+							return
+						}
 					}
 				}
 				currentData = nil
@@ -217,6 +220,36 @@ func (p *Proxy) readSSEStream(ctx context.Context, r io.Reader, ch chan<- []byte
 			}
 		}
 	}
+}
+
+// normalizeResponseID は JSON-RPC レスポンスの id が欠損または null の場合に 0 を設定します。
+// Claude Desktop は id に null を許容しないため、転送前に必ず string/number にします。
+func normalizeResponseID(body []byte) []byte {
+	var m map[string]any
+	if err := json.Unmarshal(body, &m); err != nil {
+		return body
+	}
+	if m == nil {
+		return body
+	}
+	_, hasResult := m["result"]
+	_, hasError := m["error"]
+	if !hasResult && !hasError {
+		return body
+	}
+	id, ok := m["id"]
+	if ok && id != nil {
+		switch id.(type) {
+		case string, float64:
+			return body
+		}
+	}
+	m["id"] = 0
+	out, err := json.Marshal(m)
+	if err != nil {
+		return body
+	}
+	return out
 }
 
 // isJSONRPCResponse は data が JSON-RPC レスポンス（result または error を持つ）かどうかを判定します。
@@ -238,14 +271,34 @@ func (p *Proxy) addAuthHeader(req *http.Request) {
 	}
 }
 
-func (p *Proxy) sendError(ch chan<- []byte, msg string, err error) {
+// extractRequestID は JSON-RPC リクエストの id を返します。null/欠損/パース失敗時は 0 を返します。
+// Claude Desktop は id に null を許容しないため、必ず string または number にします。
+func extractRequestID(line []byte) any {
+	var m struct {
+		ID any `json:"id"`
+	}
+	if err := json.Unmarshal(line, &m); err != nil {
+		return 0
+	}
+	if m.ID == nil {
+		return 0
+	}
+	switch m.ID.(type) {
+	case string, float64: // JSON number → float64
+		return m.ID
+	default:
+		return 0
+	}
+}
+
+func (p *Proxy) sendError(ch chan<- []byte, requestID any, msg string, err error) {
 	errResp := map[string]any{
 		"jsonrpc": "2.0",
 		"error": map[string]any{
 			"code":    -32603,
 			"message": fmt.Sprintf("%s: %v", msg, err),
 		},
-		"id": nil,
+		"id": requestID,
 	}
 	body, _ := json.Marshal(errResp)
 	select {

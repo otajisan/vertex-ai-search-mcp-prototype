@@ -45,13 +45,26 @@ go run ./cmd/mcp-bridge connect --url http://localhost:8080/sse --debug
 3. 標準入力に 1 行で JSON-RPC を送る（例: `echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | go run ./cmd/mcp-bridge connect`）。
 4. 標準出力に JSON-RPC レスポンスが返れば疎通成功です。
 
-### install（プレースホルダー）
+### install（Claude Desktop への登録）
 
-Claude Desktop の設定ファイルを書き換える枠組みです。未実装です。
+Claude Desktop の設定ファイル（`claude_desktop_config.json`）を更新し、この MCP サーバーを登録します。設定ファイルやディレクトリが存在しない場合は自動作成します。実行後は Claude Desktop の再起動が必要です。
 
 ```bash
 go run ./cmd/mcp-bridge install
 ```
+
+- `--url`: MCP サーバーの URL（デフォルト: `http://localhost:8080/sse`）
+- `--profile`: AWS プロファイル名（Claude の環境変数に注入、デフォルト: `default`）
+
+例: 別 URL とプロファイルを指定する場合
+
+```bash
+go run ./cmd/mcp-bridge install --url http://localhost:9090/sse --profile myprofile
+```
+
+設定ファイルのパス（OS により自動判定）:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ## 設定
 

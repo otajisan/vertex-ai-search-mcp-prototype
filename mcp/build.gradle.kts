@@ -7,7 +7,7 @@ plugins {
 }
 
 jacoco {
-	toolVersion = "0.8.11"
+	toolVersion = "0.8.13"
 }
 
 group = "com.example"
@@ -16,7 +16,7 @@ description = "Demo project for Spring Boot"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(24)
 	}
 }
 
@@ -42,6 +42,13 @@ kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
 	}
+}
+
+// Netty 4.2+ on JDK 24+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
+// https://netty.io/wiki/java-24-and-sun.misc.unsafe.html
+// bootRun のみに付与（Test では io.netty.common がモジュールとして解決されず Unknown module になるため）
+tasks.bootRun {
+	jvmArgs("--enable-native-access=io.netty.common")
 }
 
 tasks.withType<Test> {

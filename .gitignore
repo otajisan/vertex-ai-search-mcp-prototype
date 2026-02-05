@@ -5,3 +5,6 @@ docs/PULL_REQUEST.md
 
 credentials.json
 credentails.json
+
+# Go client binary
+client/mcp-bridge

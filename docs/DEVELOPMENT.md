@@ -7,7 +7,7 @@
 
 以下のツールがインストールされていることを確認してください。
 
-- **Java**: JDK 24+ (`java -version`)
+- **Java**: JDK 25+ (`java -version`)
 - **Go**: 1.22+ (`go version`)
 - **Python**: 3.12+ & `uv` (`uv --version`)
 - **Cloud CLI**:
@@ -62,7 +62,7 @@ cd mcp
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-**JDK 24+ の場合:** `bootRun` および `test` では Gradle が自動で `--enable-native-access=io.netty.common` を付与するため、Netty の `sun.misc.Unsafe` 非推奨警告は出ません。ビルドした JAR を直接実行する場合は `java --enable-native-access=io.netty.common -jar mcp.jar` のように指定してください。
+**JDK 25+ の場合:** `bootRun` および `test` では Gradle が自動で `--enable-native-access=io.netty.common` を付与するため、Netty の `sun.misc.Unsafe` 非推奨警告は出ません。ビルドした JAR を直接実行する場合は `java --enable-native-access=io.netty.common -jar mcp.jar` のように指定してください。
 
 **開発時の設定 (`mcp/src/main/resources/application-dev.yml`):**
 - `logging.level.root`: DEBUG

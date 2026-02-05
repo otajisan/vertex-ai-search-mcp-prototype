@@ -1,13 +1,13 @@
 plugins {
-	kotlin("jvm") version "2.2.21"
-	kotlin("plugin.spring") version "2.2.21"
+	kotlin("jvm") version "2.3.0"
+	kotlin("plugin.spring") version "2.3.0"
 	id("org.springframework.boot") version "4.0.2"
 	id("io.spring.dependency-management") version "1.1.7"
 	jacoco
 }
 
 jacoco {
-	toolVersion = "0.8.13"
+	toolVersion = "0.8.14"
 }
 
 group = "com.example"
@@ -16,7 +16,7 @@ description = "Demo project for Spring Boot"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(24)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
@@ -44,7 +44,7 @@ kotlin {
 	}
 }
 
-// Netty 4.2+ on JDK 24+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
+// Netty 4.2+ on JDK 25+: use MemorySegment instead of sun.misc.Unsafe to avoid deprecation warnings
 // https://netty.io/wiki/java-24-and-sun.misc.unsafe.html
 // bootRun のみに付与（Test では io.netty.common がモジュールとして解決されず Unknown module になるため）
 tasks.bootRun {

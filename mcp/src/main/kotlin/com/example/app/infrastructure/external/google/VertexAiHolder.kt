@@ -10,6 +10,8 @@ import javax.annotation.PreDestroy
 /**
  * Vertex AI クライアントのホルダー。
  * Gemini によるテキスト生成で利用する。
+ * Vertex AI (PredictionService) は regional エンドポイントのみ対応のため、
+ * location が "global" の場合は us-central1 にフォールバックする。
  */
 @Component
 @Profile("!test")
@@ -17,7 +19,10 @@ class VertexAiHolder(
     @Value("\${vertex.gemini.project-id:\${vertex.search.project-id}}") private val projectId: String,
     @Value("\${vertex.gemini.location:us-central1}") private val location: String,
 ) {
-    private val vertexAi: VertexAI by lazy { VertexAI(projectId, location) }
+    private val vertexAi: VertexAI by lazy {
+        val region = if (location == "global") "us-central1" else location
+        VertexAI(projectId, region)
+    }
 
     fun generateContent(modelName: String, prompt: String): String? {
         val model = GenerativeModel(modelName, vertexAi)

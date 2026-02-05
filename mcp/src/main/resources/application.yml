@@ -15,7 +15,7 @@ vertex:
     location: ${LOCATION:global}
     engine-id: ${ENGINE_ID:default-engine}
 
-  # Vertex AI Gemini
+  # Vertex AI Gemini（location はリージョン必須。global は不可 → us-central1 等を指定）
   gemini:
     project-id: ${GCP_PROJECT_ID:default-project}
     location: ${VERTEX_GEMINI_LOCATION:us-central1}

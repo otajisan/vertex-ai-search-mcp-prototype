@@ -1,7 +1,9 @@
 package com.example.app
 
+import com.example.app.infrastructure.external.google.SearchServiceClientHolder
 import com.example.app.infrastructure.external.google.VertexAiHolder
 import com.google.cloud.discoveryengine.v1.SearchServiceClient
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,7 +16,12 @@ class TestConfiguration {
 
 	@Bean
 	@Primary
-	fun searchServiceClient(): SearchServiceClient = mock(SearchServiceClient::class.java)
+	fun searchServiceClientHolder(): SearchServiceClientHolder {
+		val client = mock(SearchServiceClient::class.java)
+		val holder = mock(SearchServiceClientHolder::class.java)
+		`when`(holder.getClient()).thenReturn(client)
+		return holder
+	}
 
 	@Bean
 	@Primary
